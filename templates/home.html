@@ -1,0 +1,17 @@
+{% extends "main.html" %}
+<!-- {% include "nav.html" %} -->
+<!-- templae inheritance -->
+
+{% block content %}
+<h2>Home page</h2>
+
+<div>
+    <div>
+        {% for room in rooms %}
+        <div>
+            <h3>{{room.id}}---{{room.name}}</h3>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock  %}
