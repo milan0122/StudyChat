@@ -43,6 +43,21 @@ def create_room(request):
 def updateRoom(request,id):
     room = Room.objects.get(id=id)
     form = RoomForm(instance=room)
+    if request.method=='POST':
+        form = RoomForm(request.POST,instance=room)
+        if form.is_valid():
+            form.save()
+            return redirect('home')
+        else:
+            return HttpResponse("form not valid")
     context = {'form':form}
     return render(request,'polls/room_form.html',context)
+
+#delete operation
+def deleteRoom(request,id):
+    room = Room.objects.get(id=id)
+    if request.method=='POST':
+        room.delete()
+        return redirect('home')
+    return render(request,'polls/delete_room.html',{'obj':room})
     

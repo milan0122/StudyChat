@@ -20,7 +20,8 @@ class Room(models.Model):
     class Meta:
     #order by first updated value and then created value
         #'-' prefix update the value in reverse order
-        ordering =["-update","-created"]
+         ordering =["-update","-created"]
+
     
     def __str__(self):
         return self.name
