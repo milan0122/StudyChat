@@ -1,0 +1,31 @@
+{% extends "main.html" %}
+<!-- {% include "nav.html" %} -->
+<!-- templae inheritance -->
+
+{% block content %}
+<style>
+    .home_container{
+        display: grid;
+        grid-template-columns:1fr 3fr 1fr;
+         
+    }
+</style>
+
+<div class="home_container">
+    <div>
+        {% include 'polls/topic_component.html' %}
+    </div>
+    <div>
+        <h5>{{room_counts}} rooms available</h5>
+    
+        <a href="{% url 'create-room' %}">Create Room</a>
+        {% include 'polls/feed_component.html' %}  
+
+    </div>
+    <div class="recent-notes">
+       {% include 'polls/activity_component.html' %}
+
+    </div>
+    
+</div>
+{% endblock content %}

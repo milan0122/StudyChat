@@ -68,7 +68,13 @@ def home(request):
                                 )
     topics = Topic.objects.all()
     room_counts = rooms.count()
-    context = {'rooms':rooms,'topics':topics,'room_counts':room_counts}
+    # room_message = Message.objects.all().order_by('-created')
+    #instead of ordering here, i apply it on the model
+    room_message = Message.objects.filter(Q(
+        room__topic__name__icontains=q
+    ))
+
+    context = {'rooms':rooms,'topics':topics,'room_counts':room_counts,'room_message':room_message}
     return render(request,'polls/home.html',context)
 
 def room(request,id):  
@@ -79,7 +85,8 @@ def room(request,id):
     # if rm is None:
     #     return HttpResponse("Room not found",status=404)
     room = Room.objects.get(id =id)
-    room_messages = room.message_set.all().order_by('-created')
+    # room_messages = room.message_set.all().order_by('-created')
+    room_messages = room.message_set.all()
     #for many to one relationship , use object_set.all
     #for many to many relationship, simply use object.all
     #if need all the attribute of entity simple use object.all
@@ -91,11 +98,19 @@ def room(request,id):
             room = room,
             body = request.POST.get('body')
         )
+        room.participants.add(request.user)
         return redirect('room',id=room.id,)
     
     context = {'room':room,'room_messages':room_messages,'participants':participants}  
     return render(request,"polls/room.html",context)
-
+def userProfile(request,id):
+    user = User.objects.get(id=id)
+    rooms = user.room_set.all()
+    room_message = user.message_set.all()
+    topics = Topic.objects.all()
+    context = {'user':user,'rooms':rooms,'topics':topics,
+               'room_message':room_message}
+    return render(request,'polls/profile.html',context)
     
 @login_required(login_url='login') # decorators provide functionality when user wann to create room there need to be login 
 def create_room(request):
@@ -106,7 +121,9 @@ def create_room(request):
        #check valid
        if form.is_valid():
            #save if valid
-           form.save()
+           room=form.save(commit=False)
+           room.host=request.user #it save the host automatically
+           room.save()
            #redirect to home
            return redirect('home')
     context ={'form':form}
@@ -140,4 +157,14 @@ def deleteRoom(request,id):
         room.delete()
         return redirect('home')
     return render(request,'polls/delete_room.html',{'obj':room})
-    
+
+@login_required(login_url='login') # decorators provide functionality when user wann to create room there need to be login 
+def deleteMessage(request,id):
+    msg = Message.objects.get(id=id)
+    if request.user !=msg.user:
+        return HttpResponse("You are not allowed to here!!")
+    if request.method=='POST':
+        msg.delete()
+        return redirect('home')
+    return render(request,'polls/delete_room.html',{'obj':msg})
+       
