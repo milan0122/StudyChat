@@ -115,24 +115,37 @@ def userProfile(request,id):
 @login_required(login_url='login') # decorators provide functionality when user wann to create room there need to be login 
 def create_room(request):
     form = RoomForm()
+    topics = Topic.objects.all()
     if request.method =='POST':
        #add data to form
-       form = RoomForm(request.POST)
-       #check valid
-       if form.is_valid():
-           #save if valid
-           room=form.save(commit=False)
-           room.host=request.user #it save the host automatically
-           room.save()
-           #redirect to home
-           return redirect('home')
-    context ={'form':form}
+       topic_name = request.POST.get('topic')
+       #topic,create ensure that it show the topic if user want to talk in same topic
+       #but it make also possible when user want to talk on new topic, it create the room with new topic and add it into list,
+       #when user want to talk same topic , then it shows
+       topic,created = Topic.objects.get_or_create(name=topic_name)
+       Room.objects.create(
+           host = request.user,
+           topic=topic,
+           name=request.POST.get('name'),
+        #    description=request.POST.get('description')
+       )
+       return redirect('home')
+    #    form = RoomForm(request.POST)
+    #    #check valid
+    #    if form.is_valid():
+    #        #save if valid
+    #        room=form.save(commit=False)
+    #        room.host=request.user #it save the host automatically
+    #        room.save()
+    #        #redirect to home
+           
+    context ={'form':form,'topics':topics}
     return render(request,"polls/room_form.html",context)
 
 @login_required(login_url='logi  n') # decorators provide functionality when user wann to create room there need to be login 
 def updateRoom(request,id):
     room = Room.objects.get(id=id)
-    print(room)
+    topics = Topic.objects.all()
     form = RoomForm(instance=room)
     #this restricted the user to update other message
     if request.user !=room.host:
@@ -144,7 +157,7 @@ def updateRoom(request,id):
             return redirect('home')
         else:
             return HttpResponse("form not valid")
-    context = {'form':form}
+    context = {'form':form,'topics':topics}
     return render(request,'polls/room_form.html',context)
 
 #delete operation
