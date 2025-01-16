@@ -7,7 +7,7 @@ from django.contrib.auth import authenticate,login,logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
 from .models import Room,Topic,Message
-from .forms import RoomForm
+from .forms import RoomForm, UserForm
 
 
 
@@ -103,6 +103,7 @@ def room(request,id):
     
     context = {'room':room,'room_messages':room_messages,'participants':participants}  
     return render(request,"polls/room.html",context)
+
 def userProfile(request,id):
     user = User.objects.get(id=id)
     rooms = user.room_set.all()
@@ -125,9 +126,9 @@ def create_room(request):
        topic,created = Topic.objects.get_or_create(name=topic_name)
        Room.objects.create(
            host = request.user,
-           topic=topic,
-           name=request.POST.get('name'),
-        #    description=request.POST.get('description')
+           topic= topic,
+           name= request.POST.get('name'),
+           description= request.POST.get('description')
        )
        return redirect('home')
     #    form = RoomForm(request.POST)
@@ -142,7 +143,7 @@ def create_room(request):
     context ={'form':form,'topics':topics}
     return render(request,"polls/room_form.html",context)
 
-@login_required(login_url='logi  n') # decorators provide functionality when user wann to create room there need to be login 
+@login_required(login_url='login') # decorators provide functionality when user wann to create room there need to be login 
 def updateRoom(request,id):
     room = Room.objects.get(id=id)
     topics = Topic.objects.all()
@@ -151,13 +152,20 @@ def updateRoom(request,id):
     if request.user !=room.host:
         return HttpResponse("You are not allowed to here!!")
     if request.method=='POST':
-        form = RoomForm(request.POST,instance=room)
-        if form.is_valid():
-            form.save()
-            return redirect('home')
-        else:
-            return HttpResponse("form not valid")
-    context = {'form':form,'topics':topics}
+         topic_name = request.POST.get('topic')
+         topic,created = Topic.objects.get_or_create(name=topic_name)
+         room.name = request.POST.get('name')
+         room.topic = topic
+         room.description= request.POST.get('description')
+         room.save()
+        # form = RoomForm(request.POST,instance=room)
+        # if form.is_valid():
+        #     form.save()
+        #     return redirect('home')
+        # else:
+        #     return HttpResponse("form not valid")
+         return redirect('home')
+    context = {'form':form,'topics':topics,'room':room}
     return render(request,'polls/room_form.html',context)
 
 #delete operation
@@ -180,4 +188,15 @@ def deleteMessage(request,id):
         msg.delete()
         return redirect('home')
     return render(request,'polls/delete_room.html',{'obj':msg})
-       
+@login_required(login_url='login')
+def updateUser(request):
+    user = request.user
+    forms = UserForm(instance=user)
+    if request.method == "POST":
+        forms = UserForm(request.POST,instance=user)
+        if forms.is_valid():
+            forms.save()
+            return redirect('home')
+    context={'forms':forms}
+    return render(request,'polls/update-user.html',context)
+
