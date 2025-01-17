@@ -23,6 +23,7 @@ from django.http import HttpResponse
 urlpatterns = [
     path("admin/", admin.site.urls),
     #register app urls in project urls for routing
-    path('',include('polls.urls'))
+    path('', include('polls.urls')),
+    path('api/',include('polls.api.urls'))
     
 ]

@@ -66,7 +66,7 @@ def home(request):
                                 Q(name__icontains=q) |
                                 Q(description__icontains=q)
                                 )
-    topics = Topic.objects.all()
+    topics = Topic.objects.all()[0:5]
     room_counts = rooms.count()
     # room_message = Message.objects.all().order_by('-created')
     #instead of ordering here, i apply it on the model
@@ -200,3 +200,12 @@ def updateUser(request):
     context={'forms':forms}
     return render(request,'polls/update-user.html',context)
 
+def topicPage(request):
+    q = request.GET.get('q') if request.GET.get('q')!= None else ''
+    topics = Topic.objects.filter(name__icontains=q)
+    context = {'topics':topics}
+    return render(request,'polls/topics.html',context)
+
+def activityPage(request):
+    room_message = Message.objects.all()
+    return render(request, 'polls/activity.html',{'room_message':room_message})
